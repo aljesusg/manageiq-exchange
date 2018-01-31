@@ -6,7 +6,6 @@ module Providers
       Rails.logger.info 'Generating new connection to Source Control'
 
       github_url = provider[:enterprise] ? URI::HTTPS.build(host: provider[:server],path: "api/#{provider[:version]}") : URI::HTTPS.build(host: provider[:server])
-      github_url = URI::HTTPS.build(host: provider[:server])
 
       opts = {
           api_endpoint:       github_url.to_s,
@@ -50,7 +49,7 @@ module Providers
       begin
         metadata_raw = @github_access.contents(full_name, path: '/metadata.yml', accept: 'application/vnd.github.raw')
       rescue Octokit::NotFound
-        return ErrorExchange.new("errors.spin_get_metadata_from_provider", nil, {})
+        return ErrorExchange.new(:spin_get_metadata_from_provider, nil, {})
       end
 
       begin
@@ -59,9 +58,9 @@ module Providers
           JSON::Validator.validate!(SPIN_SCHEMA, metadata_json)
           return [metadata_raw, metadata_json]
         end
-        return ErrorExchange.new("errors.spin_metadata_to_json", nil, {})
+        return ErrorExchange.new(:spin_metadata_to_json, nil, {})
       rescue TypeError, JSON::ParserError, JSON::Schema::ValidationError => e
-        return ErrorExchange.new("errors.spin_error_metadata", nil, {error: e.to_json})
+        return ErrorExchange.new(:spin_error_metadata, nil, {error: e.to_json})
       end
     end
 
